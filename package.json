@@ -1,0 +1,26 @@
+{
+  "name": "mongo-locks",
+  "version": "0.0.1",
+  "description": "Simple and bountiful locks to avoid doing the same operation multiple times",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coyotte508/mongo-locks.git"
+  },
+  "keywords": [
+    "mongo",
+    "mongoose",
+    "lock",
+    "mutex",
+    "multiple"
+  ],
+  "author": "coyotte508",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/coyotte508/mongo-locks/issues"
+  },
+  "homepage": "https://github.com/coyotte508/mongo-locks#readme"
+}

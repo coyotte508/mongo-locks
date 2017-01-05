@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/coyotte508/mongo-locks/issues"
   },
-  "homepage": "https://github.com/coyotte508/mongo-locks#readme"
+  "homepage": "https://github.com/coyotte508/mongo-locks#readme",
+  "dependencies": {
+    "mongoose": "^4.7.6"
+  }
 }

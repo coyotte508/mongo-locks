@@ -1,2 +1,2 @@
 # mongo-locks
-Simple and bountifuls locks to avoid doing the same operation simultaneously
+Simple and bountiful locks to avoid doing the same operation multiple times

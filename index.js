@@ -30,11 +30,11 @@ module.exports = (function() {
     var lockId = makeLockId(arguments);
 
     var l = new Locks();
-    l.action = what;
-    return l.save().then(() => { return () => Locks.remove({action: what});});
+    l.action = lockId;
+    return l.save().then(() => { return () => Locks.remove({action: lockId});});
   }
 
-  var free = (what) => {
+  var free = function() {
     return Locks.remove(makeLockId(arguments));
   };
 

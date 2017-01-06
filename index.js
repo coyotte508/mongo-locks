@@ -31,11 +31,11 @@ module.exports = (function() {
 
     var l = new Locks();
     l.action = lockId;
-    return l.save().then(() => { return () => Locks.remove({action: lockId});});
+    return l.save().then(() => { return () => Locks.remove({action: lockId}).exec();});
   }
 
   var free = function() {
-    return Locks.remove(makeLockId(arguments));
+    return Locks.remove(makeLockId(arguments)).exec();
   };
 
   return {

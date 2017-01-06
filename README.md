@@ -80,7 +80,7 @@ router.all("/like", isUserLoggedIn, (req, res, next) => {
       req.post.update({$inc: {likes: 1}})
     ]);
   }).then(() => res.redirect(req.post.getLink()), next)
-    .then(freeLock, freeLock);
+    .then(() => freeLock(), () => freeLock());
 });
 ```
 

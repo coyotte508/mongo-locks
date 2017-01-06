@@ -24,14 +24,18 @@ module.exports = (function() {
     return fn.apply(this, arguments);
   };
 
-  var lock = (what) => {
+  var makeLockId = (array) => Array.prototype.slice.apply(array).join("-");
+
+  var lock = function() {
+    var lockId = makeLockId(arguments);
+
     var l = new Locks();
     l.action = what;
     return l.save().then(() => { return () => Locks.remove({action: what});});
   }
 
   var free = (what) => {
-    return Locks.remove({action: what});
+    return Locks.remove(makeLockId(arguments));
   };
 
   return {

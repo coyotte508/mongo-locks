@@ -8,7 +8,7 @@ Usage, if your version of node supports await/async:
 
 ```js
 async function doStuff() {
-  var freeLock = () => (); //no-op
+  var freeLock = () => {}; //no-op
 
   //... code
 
@@ -71,7 +71,7 @@ router.all("/like", isUserLoggedIn, (req, res, next) => {
     return res.redirect(req.post.getLink()); 
   }
 
-  var freeLock = () => ();
+  var freeLock = () => {};
   /* Add post reference to user, and increase likes for post */
   locks.lock("like", req.user.id, req.post.id).then((free) => {
     freeLock = free;

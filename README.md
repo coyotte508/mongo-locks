@@ -19,9 +19,9 @@ async function doStuff() {
     //sensitive code
   } catch(err) {
     //...
+  } finally {
+    freeLock(); /* Gets started on releasing lock, can be awaited */
   }
-
-  freeLock(); /* Gets started on releasing lock, can be awaited */
 }
 ```
 

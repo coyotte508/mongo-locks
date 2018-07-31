@@ -110,7 +110,9 @@ Create a lock for the combination of said actions, return a Promise that is reje
 The lock's id will actually be the various arguments converted to string and joined with `"-"`, so passing objects
 to this function is ill-advised.
 
-If lock creation succeeded, the Promise will resolve to a function to free the lock.
+If lock creation succeeds, the Promise resolves to a function to free the lock.
+
+If lock creation fails, an exception is thrown.
 
 ### .free([action1[, action2[, action3[, ...])
 

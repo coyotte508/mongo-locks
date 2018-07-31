@@ -18,24 +18,24 @@ class LockManager {
     this.Locks = connection.model(options.collection || 'Locks', lockSchema);
   }
 
-  lock() {
+  lock(...actions: any[]) {
     if (!this.Locks) {
       throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
     }
 
-    const lockId = makeLockId(arguments);
+    const lockId = makeLockId(actions);
 
     const l = new this.Locks();
     l.action = lockId;
     return l.save().then(() => () => this.Locks.remove({action: lockId}).exec());
   }
 
-  free() {
+  free(...actions: any[]) {
     if (!this.Locks) {
       throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
     }
 
-    return this.Locks.remove(makeLockId(arguments)).exec();
+    return this.Locks.remove(makeLockId(actions)).exec();
   }
 }
 

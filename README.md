@@ -8,7 +8,7 @@ Usage, if your version of node supports await/async:
 
 ```js
 async function doStuff() {
-  var freeLock = () => {}; //no-op
+  var freeLock = () => {}; //no-op, you can also use locks.noop
 
   //... code
 

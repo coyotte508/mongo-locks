@@ -12,6 +12,7 @@ const makeLockId = array => Array.prototype.slice.apply(array).join("-");
 class LockManager {
   Locks: mongoose.Model<any> = null;
   MongoLocksError = MongoLocksError;
+  noop = () => {};
 
   init(connection: mongoose.Connection, options?: {collection?: string}) {
     options = options || {};

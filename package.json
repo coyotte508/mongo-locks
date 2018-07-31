@@ -1,10 +1,12 @@
 {
   "name": "mongo-locks",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Simple and bountiful locks to avoid doing the same operation multiple times",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm run clean && tsc",
+    "clean": "rm -Rf dist"
   },
   "repository": {
     "type": "git",
@@ -25,5 +27,16 @@
   "homepage": "https://github.com/coyotte508/mongo-locks#readme",
   "dependencies": {
     "mongoose": "^4.7.6 || ^5.0.0"
-  }
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.2.3",
+    "typescript": "^3.0.1"
+  },
+  "files": [
+    "src",
+    "dist",
+    "index.d.ts",
+    "index.ts",
+    "tsconfig.json"
+  ]
 }

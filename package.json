@@ -1,6 +1,6 @@
 {
   "name": "mongo-locks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple and bountiful locks to avoid doing the same operation multiple times",
   "main": "dist/index.js",
   "scripts": {

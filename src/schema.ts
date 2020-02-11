@@ -3,7 +3,6 @@ const Schema = mongoose.Schema;
 
 // define the schema for our user model
 const lockSchema = new Schema({
-  _id: String,
   createdAt: {
     type: Date,
     default: Date.now

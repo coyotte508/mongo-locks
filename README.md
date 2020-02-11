@@ -118,6 +118,10 @@ If lock creation fails, an exception is thrown.
 
 Frees the lock. If you want to wait until the lock is freed, you can chain it with `.then`.
 
+### .resfresh([action1[, action2[, action3[, ...])
+
+Refreshes the lock, giving it one minute more. Chainable.
+
 ## MongoDb model
 
 Model created:
@@ -126,7 +130,8 @@ Model created:
 // This module will create a Mongoose model 
 // collection with schema:
 Locks = new mongoose.Schema({
-    createdAt:     Date, //indexed, expires after 60 seconds
+    createdAt:     Date,
+    refreshedAt:   Date,  //indexed, expires after 60 seconds
     action:        String //uniquely indexed
 });
 ```

@@ -31,6 +31,14 @@ class LockManager {
     return l.save().then(() => () => this.Locks.remove({action: lockId}).exec());
   }
 
+  refresh(...actions: any[]) {
+    if (!this.Locks) {
+      throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
+    }
+
+    return this.Locks.updateOne({_id: makeLockId(actions)}, {$set: {refreshedAt: Date.now()}});
+  }
+
   free(...actions: any[]) {
     if (!this.Locks) {
       throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");

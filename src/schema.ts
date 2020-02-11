@@ -5,6 +5,10 @@ const Schema = mongoose.Schema;
 const lockSchema = new Schema({
   createdAt: {
     type: Date,
+    default: Date.now
+  },
+  refreshedAt: {
+    type: Date,
     default: Date.now,
     // Locks are not supposed to last longer than a minute
     expires: 60

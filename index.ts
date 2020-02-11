@@ -28,7 +28,7 @@ class LockManager {
 
     const l = new this.Locks();
     l.action = lockId;
-    return l.save().then(() => () => this.Locks.remove({action: lockId}).exec());
+    return l.save().then(() => () => this.Locks.deleteOne({action: lockId}).exec());
   }
 
   refresh(...actions: any[]) {
@@ -44,7 +44,7 @@ class LockManager {
       throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
     }
 
-    return this.Locks.remove(makeLockId(actions)).exec();
+    return this.Locks.deleteOne({action: makeLockId(actions)}).exec();
   }
 }
 

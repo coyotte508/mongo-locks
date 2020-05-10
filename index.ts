@@ -7,7 +7,7 @@ export class MongoLocksError extends Error {
   }
 }
 
-const makeLockId = array => Array.prototype.slice.apply(array).join("-");
+const makeLockId = array => Array.prototype.slice.apply(array).join(":");
 
 class LockManager {
   Locks: mongoose.Model<any> = null;

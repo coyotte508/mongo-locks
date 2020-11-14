@@ -7,16 +7,16 @@ export class MongoLocksError extends Error {
   }
 }
 
-const makeLockId = array => Array.prototype.slice.apply(array).join(":");
+const makeLockId = (array) => Array.prototype.slice.apply(array).join(":");
 
 class LockManager {
   Locks: mongoose.Model<any> = null;
   MongoLocksError = MongoLocksError;
   noop: () => Promise<any> = async () => {};
 
-  init(connection: mongoose.Connection, options?: {collection?: string}) {
+  init(connection: mongoose.Connection, options?: { collection?: string }) {
     options = options || {};
-    this.Locks = connection.model(options.collection || 'Locks', lockSchema);
+    this.Locks = connection.model(options.collection || "Locks", lockSchema);
   }
 
   lock(...actions: any[]): Promise<() => Promise<any>> {
@@ -28,7 +28,7 @@ class LockManager {
 
     const l = new this.Locks();
     l.action = lockId;
-    return l.save().then(() => () => this.Locks.deleteOne({action: lockId}).exec());
+    return l.save().then(() => () => this.Locks.deleteOne({ action: lockId }).exec());
   }
 
   refresh(...actions: any[]) {
@@ -36,7 +36,11 @@ class LockManager {
       throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
     }
 
-    return this.Locks.updateOne({action: makeLockId(actions)}, {$set: {refreshedAt: Date.now()}}).exec();
+    return this.Locks.updateOne(
+      { action: makeLockId(actions) },
+      { $set: { refreshedAt: Date.now() } },
+      { upsert: true }
+    ).exec();
   }
 
   free(...actions: any[]) {
@@ -44,7 +48,7 @@ class LockManager {
       throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
     }
 
-    return this.Locks.deleteOne({action: makeLockId(actions)}).exec();
+    return this.Locks.deleteOne({ action: makeLockId(actions) }).exec();
   }
 }
 

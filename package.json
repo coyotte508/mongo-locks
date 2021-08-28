@@ -1,6 +1,6 @@
 {
   "name": "mongo-locks",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "Simple and bountiful locks to avoid doing the same operation multiple times",
   "main": "dist/index.js",
   "scripts": {
@@ -25,12 +25,12 @@
     "url": "https://github.com/coyotte508/mongo-locks/issues"
   },
   "homepage": "https://github.com/coyotte508/mongo-locks#readme",
-  "dependencies": {
-    "mongoose": "^4.7.6 || ^5.0.0"
+  "peerDependencies": {
+    "mongoose": ">=4.7.6"
   },
   "devDependencies": {
-    "@types/mongoose": "^5.2.3",
-    "typescript": "^3.0.1"
+    "mongoose": "^6.0.2",
+    "typescript": "^4.0.1"
   },
   "files": [
     "src",

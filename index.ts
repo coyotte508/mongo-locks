@@ -84,7 +84,7 @@ class Lock {
   }
 }
 
-class LockManager {
+export class LockManager {
   collection: Collection<LockModel>;
   MongoLocksError = MongoLocksError;
 
@@ -124,5 +124,4 @@ class LockManager {
   }
 }
 
-export default LockManager;
 export type { LockModel, Lock };

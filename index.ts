@@ -20,12 +20,7 @@ interface LockModel {
 }
 
 class Lock {
-  constructor(
-    public _id: ObjectId,
-    public action: unknown,
-    public collection: Collection<LockModel>,
-    public locked: boolean
-  ) {
+  constructor(public _id: ObjectId, public action: unknown, public collection: Collection<LockModel>) {
     if (this.locked) {
       (async () => {
         while (this.locked) {
@@ -38,6 +33,8 @@ class Lock {
     }
   }
 
+  locked = true;
+
   /**
    * Instead of calling `this.free` directly you can use the `using` syntax
    *
@@ -47,6 +44,7 @@ class Lock {
     if (!this.locked) {
       return false;
     }
+    this.locked = false;
 
     const result = await this.collection.deleteOne({ _id: this._id });
     return result.deletedCount === 1;
@@ -100,7 +98,7 @@ export class LockManager {
    *
    * @returns a function that when called will release the lock
    */
-  async lock(key: unknown): Promise<Lock> {
+  async lock(key: unknown): Promise<Lock | null> {
     const lockId = makeKey(key);
     const id = new ObjectId();
 
@@ -113,10 +111,10 @@ export class LockManager {
         expiresAt: new Date(Date.now() + 60_000),
       });
 
-      return new Lock(id, lockId, this.collection, true);
+      return new Lock(id, lockId, this.collection);
     } catch (err) {
       if (err instanceof Error && "code" in err && err.code === 11000) {
-        return new Lock(id, lockId, this.collection, false);
+        return null;
       }
 
       throw err;

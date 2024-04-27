@@ -15,7 +15,7 @@ const lockManager = new LockManager(client.db().collection("mongo-locks"));
 async function doStuff() {
   await using lock = lockManager.lock("unique string key");
 
-  if (!lock.locked) {
+  if (!lock) {
     console.log("Lock already taken");
     return;
   }
@@ -34,7 +34,7 @@ If you don't want to use the `using` syntax, you can do it this way:
 async function doStuff() {
   const lock = await lockManager.lock("unique string key");
 
-  if (!lock.locked) {
+  if (!lock) {
     console.log("Lock already taken");
     return;
   }

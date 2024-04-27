@@ -1,5 +1,4 @@
-import * as mongoose from "mongoose";
-import lockSchema from "./src/schema";
+import { Collection, ObjectId } from "mongodb";
 
 export class MongoLocksError extends Error {
   constructor(message?: string) {
@@ -7,50 +6,123 @@ export class MongoLocksError extends Error {
   }
 }
 
-const makeLockId = (array: any[]) => Array.prototype.slice.apply(array).join(":");
+const makeKey = (key: unknown) => {
+  // Arrays mess up the unique MongoDB indexes
+  return Array.isArray(key) ? { _key_array: key } : key;
+};
 
-class LockManager {
-  Locks: mongoose.Model<any> | null = null;
-  MongoLocksError = MongoLocksError;
-  noop: () => Promise<any> = async () => {};
+interface LockModel {
+  _id: ObjectId;
+  action: unknown;
+  createdAt: Date;
+  refreshedAt: Date;
+  expiresAt: Date;
+}
 
-  init(connection: mongoose.Connection, options?: { collection?: string }) {
-    options = options || {};
-    this.Locks = connection.model(options.collection || "Locks", lockSchema);
+class Lock {
+  constructor(
+    public _id: ObjectId,
+    public action: unknown,
+    public collection: Collection<LockModel>,
+    public locked: boolean
+  ) {
+    if (this.locked) {
+      (async () => {
+        while (this.locked) {
+          await new Promise((resolve) => setTimeout(resolve, 10_000));
+          await this.refresh().catch(() => {
+            console.error("Failed to refresh lock", action);
+          });
+        }
+      })();
+    }
   }
 
-  async lock(...actions: any[]): Promise<() => Promise<any>> {
-    if (!this.Locks) {
-      throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
+  /**
+   * Instead of calling `this.free` directly you can use the `using` syntax
+   *
+   * @returns true if the lock was successfully released. False if the lock was not found
+   */
+  async free(): Promise<boolean> {
+    if (!this.locked) {
+      return false;
     }
 
-    const lockId = makeLockId(actions);
-
-    const l = new this.Locks();
-    l.action = lockId;
-    await l.save();
-    return () => this.Locks!.deleteOne({ action: lockId }).exec()
+    const result = await this.collection.deleteOne({ _id: this._id });
+    return result.deletedCount === 1;
   }
 
-  refresh(...actions: any[]) {
-    if (!this.Locks) {
-      throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
+  /**
+   * Refreshes the lock's TTL
+   *
+   * Automatically called every 10 seconds if the lock is still active, no
+   * need to call this manually
+   *
+   * @returns true if the lock was successfully refreshed. False if the lock was not found
+   */
+  async refresh(): Promise<boolean> {
+    if (!this.locked) {
+      return false;
     }
 
-    return this.Locks.updateOne(
-      { action: makeLockId(actions) },
-      { $set: { refreshedAt: Date.now() } },
-      { upsert: true }
-    ).exec();
+    const res = await this.collection.updateOne(
+      { _id: this._id },
+      { $set: { refreshedAt: new Date(), expiresAt: new Date(Date.now() + 60_000) } }
+    );
+
+    this.locked = res.matchedCount === 1;
+
+    return this.locked;
   }
 
-  free(...actions: any[]) {
-    if (!this.Locks) {
-      throw new MongoLocksError("You must initialize mongo-locks with a mongoose connection");
-    }
+  [Symbol.dispose]() {
+    this.free();
+  }
 
-    return this.Locks.deleteOne({ action: makeLockId(actions) }).exec();
+  async [Symbol.asyncDispose]() {
+    return this.free();
   }
 }
 
-export default new LockManager();
+class LockManager {
+  collection: Collection<LockModel>;
+  MongoLocksError = MongoLocksError;
+
+  constructor(collection: Collection) {
+    this.collection = collection as unknown as Collection<LockModel>;
+
+    collection.createIndex({ action: 1 }, { unique: true });
+    collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+  }
+
+  /**
+   * Creates a DB lock based on the key provided
+   *
+   * @returns a function that when called will release the lock
+   */
+  async lock(key: unknown): Promise<Lock> {
+    const lockId = makeKey(key);
+    const id = new ObjectId();
+
+    try {
+      await this.collection.insertOne({
+        _id: id,
+        action: lockId,
+        createdAt: new Date(),
+        refreshedAt: new Date(),
+        expiresAt: new Date(Date.now() + 60_000),
+      });
+
+      return new Lock(id, lockId, this.collection, true);
+    } catch (err) {
+      if (err instanceof Error && "code" in err && err.code === 11000) {
+        return new Lock(id, lockId, this.collection, false);
+      }
+
+      throw err;
+    }
+  }
+}
+
+export default LockManager;
+export type { LockModel, Lock };

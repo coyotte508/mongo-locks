@@ -1,140 +1,60 @@
 # mongo-locks
+
 Simple and bountiful locks to avoid doing the same operation multiple times
 
 The purpose of this package is simply to avoid doing the same thing twice at the same time
 and make your system a bit more user-proof.
 
-Usage, if your version of node supports await/async:
+```ts
+import { LockManager } from "mongo-locks";
+import { MongoClient } from "mongodb";
 
-```js
+const client = new MongoClient("mongodb://localhost:27017");
+const lockManager = new LockManager(client.db().collection("mongo-locks"));
+
 async function doStuff() {
-  var freeLock = () => {}; //no-op, you can also use locks.noop
+  await using lock = lockManager.lock("unique string key");
 
-  //... code
+  if (!lock.locked) {
+    console.log("Lock already taken");
+    return;
+  }
+
+  // do stuff
+
+  //lock is automatically freed
+}
+```
+
+If the process crashes while a lock is active, MongoDB will automatically free it after one minute or two.
+
+If you don't want to use the `using` syntax, you can do it this way:
+
+```ts
+async function doStuff() {
+  const lock = await lockManager.lock("unique string key");
+
+  if (!lock.locked) {
+    console.log("Lock already taken");
+    return;
+  }
 
   try {
-    //...
-    freeLock = await locks.lock("unique string key");
-
-    //sensitive code
-  } catch(err) {
-    //...
+    // do stuff
   } finally {
-    freeLock(); /* Gets started on releasing lock, can be awaited */
+    await lock.free(); // or await lock[Symbol.asyncDispose]();
   }
 }
 ```
 
-Locks are automatically freed within one minute or two, as the purpose of this package is just to protect against
-race conditions and doing the same action several times in a short span.
+## Mongoose
 
-For a more concrete example:
+Mongoose let's you access the underlying collection of a model, so you can use it like this:
 
-Imagine you have a "like" feature on your site, where users can like posts. Maybe you would
-process likes this way:
+```ts
+import { LockManager } from "mongo-locks";
+import mongoose from "mongoose";
 
-```js
-const mongoose = require('mongoose');
-
-router.all("/like", isUserLoggedIn, (req, res, next) => {
-  /* Silently ignore attempt to like an already liked post */
-  if (req.user.doesLike(req.post.id)) {
-    return res.redirect(req.post.getLink()); 
-  }
-
-  /* Add post reference to user, and increase likes for post */
-  Promise.all([
-    req.user.update({$push: {likedPosts: {ref: req.post.id, title: req.post.title}}}),
-    req.post.update({$inc: {likes: 1}})
-  ]).then(
-    () => res.redirect(req.post.getLink()), //when all done
-    next //in case of error, next(err) is called
-  );
-});
+const lockManager = new LockManager(mongoose.model("Lock").collection);
+// ...
 ```
-
-The problem with this is that if a user accesses the "like" url twice very fast, for whatever
-reason, the server can add the like on one hand while the silent check is already passed successfully
-on the other hand, and boom, the user liked the same post twice!
-
-This package aims to solve that problem. The code would now look like:
-
-```js
-const mongoose = require('mongoose');
-const locks = require('mongo-locks');
-
-locks.init(mongoose.connection); //do just once across the whole app
-
-router.all("/like", isUserLoggedIn, (req, res, next) => {
-  /* Silently ignore attempt to like an already liked post */
-  if (req.user.doesLike(req.post.id)) {
-    return res.redirect(req.post.getLink()); 
-  }
-
-  var freeLock = () => {};
-  /* Add post reference to user, and increase likes for post */
-  locks.lock("like", req.user.id, req.post.id).then((free) => {
-    freeLock = free;
-    return Promise.all([
-      req.user.update({$push: {likedPosts: {ref: req.post.id, title: req.post.title}}}),
-      req.post.update({$inc: {likes: 1}})
-    ]);
-  }).then(() => res.redirect(req.post.getLink()), next)
-    .then(freeLock, freeLock);
-});
-```
-
-Internally, this package creates a collection and tries to insert locks in
-that collection. It relies on MongoDB's unique indexes to guarantee an error
-is returned in case the same lock is used twice.
-
-
-## API
-
-All the functions except for getting and setting the parameters return Promises.
-
-### .init(connection: mongoose.connection[, options])
-
-Initialize the connection to the mongo database, needed before any calls to the other functions.
-
-`options` is made of the following:
-
-#### collection 
-
-The collection this module will create and use to store locks, by default `locks`
-
-### .lock([action1[, action2[, action3[, ...])
-
-Create a lock for the combination of said actions, return a Promise that is rejected if lock creation failed.
-
-The lock's id will actually be the various arguments converted to string and joined with `"-"`, so passing objects
-to this function is ill-advised.
-
-If lock creation succeeds, the Promise resolves to a function to free the lock.
-
-If lock creation fails, an exception is thrown.
-
-### .free([action1[, action2[, action3[, ...])
-
-Frees the lock. If you want to wait until the lock is freed, you can chain it with `.then`.
-
-### .resfresh([action1[, action2[, action3[, ...])
-
-Refreshes the lock, giving it one minute more. Chainable.
-
-## MongoDb model
-
-Model created:
-
-``` js
-// This module will create a Mongoose model 
-// collection with schema:
-Locks = new mongoose.Schema({
-    createdAt:     Date,
-    refreshedAt:   Date,  //indexed, expires after 60 seconds
-    action:        String //uniquely indexed
-});
-```
-
-The collection is called "locks" by default, but you can set the name you want in the `options`
-parameter of the `init()` function.

@@ -13,7 +13,7 @@ const client = new MongoClient("mongodb://localhost:27017");
 const lockManager = new LockManager(client.db().collection("mongo-locks"));
 
 async function doStuff() {
-  await using lock = lockManager.lock("unique string key");
+  await using lock = await lockManager.lock("unique string key");
 
   if (!lock) {
     console.log("Lock already taken");

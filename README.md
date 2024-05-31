@@ -5,6 +5,10 @@ Simple and bountiful locks to avoid doing the same operation multiple times
 The purpose of this package is simply to avoid doing the same thing twice at the same time
 and make your system a bit more user-proof.
 
+```bash
+npm install mongo-locks
+```
+
 ```ts
 import { LockManager } from "mongo-locks";
 import { MongoClient } from "mongodb";

@@ -1,12 +1,12 @@
 {
   "name": "mongo-locks",
-  "version": "3.0.2",
+  "type": "module",
+  "version": "3.1.0",
   "description": "Simple and bountiful locks to avoid doing the same operation multiple times",
-  "main": "dist/index.js",
+  "main": "./dist/commonjs/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "npm run clean && tsc",
-    "clean": "rm -Rf dist"
+    "prepare": "tshy"
   },
   "repository": {
     "type": "git",
@@ -29,8 +29,9 @@
     "mongodb": ">=4"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
+    "@types/node": "^22.12.7",
     "mongodb": "^6.5.0",
+    "tshy": "^3.1.0",
     "typescript": "^5.4.5"
   },
   "files": [
@@ -38,5 +39,26 @@
     "index.d.ts",
     "index.ts",
     "tsconfig.json"
-  ]
+  ],
+  "tshy": {
+    "exports": {
+      "./package.json": "./package.json",
+      ".": "./src/index.ts"
+    }
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    }
+  },
+  "types": "./dist/commonjs/index.d.ts",
+  "module": "./dist/esm/index.js"
 }

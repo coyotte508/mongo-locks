@@ -2,20 +2,13 @@
   "compilerOptions": {
     "strict": true,
     /* Basic Options */
-    "target": "es2015",
-    "module": "commonjs",
-    // "declaration": true,                   /* Generates corresponding '.d.ts' file. */
-    "sourceMap": false,                     /* Generates corresponding '.map' file. */
-    // "outFile": "./",                       /* Concatenate and emit output to single file. */
-    "outDir": "./dist",                        /* Redirect output structure to the directory. */
+    "target": "es2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true /* Generates corresponding '.d.ts' file. */,
+    "sourceMap": true /* Generates corresponding '.map' file. */,
+    "outDir": "./dist" /* Redirect output structure to the directory. */
   },
-  "include": [
-    "src/**/*.ts",
-    "index.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.spec.ts"
-  ]
+  "include": ["src/**/*.ts", "index.ts"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

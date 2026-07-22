@@ -84,13 +84,16 @@ class Lock {
 
 export class LockManager {
   collection: Collection<LockModel>;
+  private readonly ready: Promise<string[]>;
   MongoLocksError = MongoLocksError;
 
   constructor(collection: Collection) {
     this.collection = collection as unknown as Collection<LockModel>;
 
-    collection.createIndex({ action: 1 }, { unique: true });
-    collection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    this.ready = collection.createIndexes([
+      { key: { action: 1 }, unique: true },
+      { key: { expiresAt: 1 }, expireAfterSeconds: 0 },
+    ]);
   }
 
   /**
@@ -99,6 +102,8 @@ export class LockManager {
    * @returns a function that when called will release the lock
    */
   async lock(key: unknown): Promise<Lock | null> {
+    await this.ready;
+
     const lockId = makeKey(key);
     const id = new ObjectId();
 
